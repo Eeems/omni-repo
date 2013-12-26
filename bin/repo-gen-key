@@ -1,0 +1,46 @@
+#!/bin/bash
+root="$(readlink -f $(dirname $BASH_SOURCE)/..)";
+. $root/etc/repo.conf
+echo "Initializing...";
+expect -c "
+	set timeout 1
+	log_user 0
+	spawn gpg --gen-key
+	expect \"Your selection?\" {
+		send \"4\r\";
+		exp_continue;
+	}
+	expect \"What keysize do you want? (2048)\" {
+		send \"\r\";
+		exp_continue;
+	}
+	expect \"Key is valid for? (0)\" {
+		send \"\r\";
+		exp_continue;
+	}
+	expect \"Is this correct? (y/N)\" {
+		send \"y\r\";
+		exp_continue;
+	}
+	expect \"Real name:\" {
+		send \"$reponame Key\r\";
+		exp_continue;
+	}
+	expect \"Email address:\" {
+		send \"$repokey\r\";
+		exp_continue;
+	}
+	expect \"Comment:\" {
+		send \"Repository Signing Key\r\";
+		exp_continue;
+	}
+	expect \"Change (N)ame, (C)omment, (E)mail or (O)kay/(Q)uit?\" {
+		send \"o\r\";
+		set timeout -1;
+		log_user 1;
+		exp_continue;
+	}
+	expect eof {
+		exit
+	}";
+gpg --export-secret-key -a $repokey > $root/etc/repo.key;

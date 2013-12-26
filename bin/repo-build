@@ -100,7 +100,7 @@ ls -l $root/repo/latest/ | egrep '^d' | awk '{print $9}' | while read arch; do
 		cd $root/repo/latest/$arch;
 		rm -f $reponame.db.tar.gz;
 		touch $reponame.db.tar.gz;
-		repo-add $reponame.db.tar.gz *.pkg.tar.xz;
+		repo-add -s -v -f -k $repokey $reponame.db.tar.gz *.pkg.tar.xz;
 		rm -f $reponame.db.tar.gz.old;
 	fi;
 done;
