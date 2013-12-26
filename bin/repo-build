@@ -6,6 +6,8 @@ else
 fi;
 root="$(dirname $BASH_SOURCE)/..";
 . $root/etc/packages.conf
+rm -f $root/repo/latest/i686/*;
+rm -f $root/repo/latest/x86-64/*;
 for val in "${packages[@]}"; do
 	unset package;
 	declare -A package;
@@ -71,12 +73,21 @@ for val in "${packages[@]}"; do
 		echo -e "\tUp to Date";
 	fi;
 	cd $root/src/$name;
-	if ! ls $name-*-i686.pkg.tar.xz &> /dev/null ||  $build || $override;then
+	if ! ls $name-*-i686.pkg.tar.xz &> /dev/null || ! ls $name-*-x86-64.pkg.tar.xz &> /dev/null ||  $build || $override;then
 		echo -e "\tBuilding";
 		./build.sh
 		ls $name-*-i686.pkg.tar.xz | while read item; do
-			cp $item $root/repo/updates/$item;
+			cp $item $root/repo/updates/i686/$item;
+		done;
+		ls $name-*-x86-64.pkg.tar.xz | while read item; do
+			cp $item $root/repo/updates/x86-64/$item;
 		done;
 	fi;
+	ls $name-*-i686.pkg.tar.xz | while read item; do
+		cp $item $root/repo/latest/i686/$item;
+	done;
+	ls $name-*-x86-64.pkg.tar.xz | while read item; do
+		cp $item $root/repo/latest/x86-64/$item;
+	done;
 	echo -e "\tDone"
 done;

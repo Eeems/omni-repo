@@ -1,4 +1,9 @@
 #!/bin/bash
+if [[ "$1" != "" ]];then
+	force=true;
+else
+	force=false;
+fi;
 root="$(dirname $BASH_SOURCE)/..";
 . $root/etc/sites.conf
 for val in "${sites[@]}"; do
