@@ -1,6 +1,6 @@
 <html>
 	<head>
-		<link rel="icon" type="image/ico" href="http://omnimaga.org/favicon.ico">
+		<link rel="icon" type="image/ico" href="favicon.ico">
 		<title>[omni]</title>
 		<style>
 			#wrapper{
@@ -15,5 +15,4 @@
 			<h1>[omni] Repo:</h1>
 			Append this to /etc/pacman.conf
 			<pre>[omni]
-Server = http://omni.eeems.ca/$arch
-Server = http://withg.us.to/eeems/$repo/$arch</pre>
+Server = </pre>
