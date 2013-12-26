@@ -1,0 +1,10 @@
+#!/bin/bash
+name=$(basename $(pwd));
+pwd=$(pwd);
+pushd $pwd;
+cd source;
+tar -zcvf $pwd/$name.tar.gz *;
+popd;
+updpkgsums;
+makepkg -f;
+echo -e "\tBuilt.";

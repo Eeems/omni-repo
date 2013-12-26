@@ -13,10 +13,11 @@ for val in "${packages[@]}"; do
 	name=${package[name]};
 	echo "Checking $name";
 	echo -e "\tChecking for updates";
-	cd $root/src/$name/src;
+	cd $root/src/$name/source;
 	case ${package[type]} in
 		git)
 			git reset --hard > /dev/null;
+			git clean -f -d > /dev/null;
 			expect -c "
 				set timeout 1
 				log_user 0
@@ -72,6 +73,9 @@ for val in "${packages[@]}"; do
 	if ! ls $name-*-i686.pkg.tar.xz &> /dev/null ||  $build || $override;then
 		echo -e "\tBuilding";
 		./build.sh
+		ls $name-*-i686.pkg.tar.xz | while read item; do
+			cp $item $root/repo/updates/$item;
+		done;
 	fi;
 	echo -e "\tDone"
 done;

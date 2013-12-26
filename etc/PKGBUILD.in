@@ -1,0 +1,13 @@
+pkgver=
+pkgrel=
+pkgdesc=
+pkgdir=pkg
+arch=('x86_64' 'i686')
+source="$pkgname.tar.gz"
+build() {
+	make 
+}
+package() {
+	make DESTDIR="${pkgdir}" install
+}
+md5sums=

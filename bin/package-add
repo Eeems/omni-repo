@@ -4,14 +4,19 @@ if [[ "$1" != "" ]];then
 	script="";
 	if [[ "$2" != "" ]];then
 		mkdir -p src/$1;
-		ln -s `readlink -f $2`  src/$1/src;
+		ln -s `readlink -f $2`  src/$1/source;
 		echo "Linked source in $2";
 	else
-		mkdir -p src/$1/src;
+		mkdir -p src/$1/source;
+	fi;
+	mkdir -p src/$1/pkg
+	mkdir -p src/$1/src
+	if [[ ! -f src/$1/PKGBUILD ]];then
+		cp etc/PKGBUILD.in src/$1/PKGBUILD;
+		echo -e "pkgname=$1\n"|cat - src/$1/PKGBUILD > /tmp/out && mv /tmp/out src/$1/PKGBUILD;
 	fi;
 	if [[ ! -f src/$1/build.sh ]];then
-		touch src/$1/build.sh;
-		echo "#!/bin/bash\\necho -e \"\\tBuilt.\"" > src/$1/build.sh;
+		cp etc/build.sh.in src/$1/build.sh
 	fi;
 	chmod +x src/$1/build.sh
 	echo -e "Type:\n (1) script\n (2) git\n (3) svn";
