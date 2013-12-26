@@ -28,7 +28,7 @@ if [[ "$1" != "" ]];then
 	esac;
 	file=`dirname $BASH_SOURCE`/../etc/packages.d/$1;
 	touch $file;
-	echo "packages+=([name]=\"$1\" [type]=\"$btype\" [script]=\"$script\")" > $file;
+	echo "packages+=(\"[name]='$1' [type]='$btype' [script]='$script'\")" > $file;
 	echo "Created project $1";
 else
 	echo "Usage: $0 <package> [<sourcedir>]";

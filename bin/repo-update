@@ -1,0 +1,33 @@
+#!/bin/bash
+root="$(dirname $BASH_SOURCE)/..";
+. $root/etc/sites.conf
+for val in "${sites[@]}"; do
+	unset site;
+	declare -A site;
+	eval "site=($val)";
+	host=${site[host]};
+	user=${site[username]};
+	echo "Updating $user@$host";
+	case ${site[type]} in
+		ssh)
+			echo -e "\tUploading files";
+			expect -c "
+				set timeout 1
+				log_user 0
+				spawn scp -r $root/skel $user@$host:${site[root]}
+					expect yes/no { send yes\r ; exp_continue }
+					expect password: {
+						send $(echo ${site[password]} | base64 --decode | gpg -d -q --no-mdc-warning)\r 
+						log_user 1
+						set timeout -1
+					}
+					expect eof {
+						exit
+					}
+				}";
+			echo -e "\tDone uploading"
+		;;
+		*)
+			echo -e "\tType '${site[type]}' not implemented.";
+	esac;
+done;

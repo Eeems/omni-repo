@@ -23,7 +23,7 @@ if [[ "$1" != "" ]] && [[ "$2" != "" ]]; then
 	read -s -p "Password:" pass;
 	file=`dirname $BASH_SOURCE`/../etc/sites.d/$1@$2;
 	touch $file;
-	echo "sites+=([username]=\"$1\" [host]=\"$2\" [password]=\"$(echo $pass | gpg -c | base64)\" [root]=\"$root\" [type]=\"$stype\")" > $file;
+	echo "sites+=(\"[username]='$1' [host]='$2' [password]='$(echo $pass | gpg -c | base64)' [root]='$root' [type]='$stype'\")" > $file;
 	echo -e "Site $1@$2 created";
 else
 	echo "Usage: $0 <username> <hostname> [<root directory>]"
