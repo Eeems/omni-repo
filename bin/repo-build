@@ -18,6 +18,7 @@ for val in "${packages[@]}"; do
 		git)
 			git reset --hard > /dev/null;
 			git clean -f -d > /dev/null;
+			git fetch --tags > /dev/null;
 			expect -c "
 				set timeout 1
 				log_user 0

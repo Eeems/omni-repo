@@ -11,10 +11,6 @@ if [[ "$1" != "" ]];then
 	fi;
 	mkdir -p src/$1/pkg
 	mkdir -p src/$1/src
-	if [[ ! -f src/$1/PKGBUILD ]];then
-		cp etc/PKGBUILD.in src/$1/PKGBUILD;
-		echo -e "pkgname=$1\n"|cat - src/$1/PKGBUILD > /tmp/out && mv /tmp/out src/$1/PKGBUILD;
-	fi;
 	if [[ ! -f src/$1/build.sh ]];then
 		cp etc/build.sh.in src/$1/build.sh
 	fi;
@@ -35,6 +31,21 @@ if [[ "$1" != "" ]];then
 			read -p "Script path: " script;
 		;;
 	esac;
+	if [[ ! -f src/$1/PKGBUILD ]];then
+		cp etc/PKGBUILD.in src/$1/PKGBUILD;
+		case $btype in
+			git)
+				echo -e "pkgver=0.0.0\npkgver() {\n\tcd \"source\"\n\tif git describe --tags > /dev/null 2>&1;then\n\t\tgit describe --long | sed -E 's/([^-]*-g)/r\1/;s/-/./g';\n\telse\n\t\tdate +%Y%m%d;\n\tfi;}"|cat - src/$1/PKGBUILD > /tmp/out && mv /tmp/out src/$1/PKGBUILD;
+			;;
+			svn)
+				echo -e "pkgver=0.0.0\npkgver() {\n\tcd \"source\"\n\tlocal ver="$(svnversion)"\n\tprintf \"r%s\" \"${ver//[[:alpha:]]}\"\n}"|cat - src/$1/PKGBUILD > /tmp/out && mv /tmp/out src/$1/PKGBUILD;
+			;;
+			script)
+				echo -e "pkgver=0.0.0\npkgver() {\n  date +%Y%m%d\n}"|cat - src/$1/PKGBUILD > /tmp/out && mv /tmp/out src/$1/PKGBUILD;
+			;;
+		esac;
+		echo -e "pkgname=$1\n"|cat - src/$1/PKGBUILD > /tmp/out && mv /tmp/out src/$1/PKGBUILD;
+	fi;
 	file=`dirname $BASH_SOURCE`/../etc/packages.d/$1;
 	touch $file;
 	echo "packages+=(\"[name]='$1' [type]='$btype' [script]='$script'\")" > $file;

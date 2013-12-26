@@ -6,5 +6,7 @@ cd source;
 tar -zcvf $pwd/$name.tar.gz *;
 popd;
 updpkgsums;
-makepkg -f;
+makepkg -c;
+makepkg -f --config $pwd/../../etc/makepkg-i686.conf;
+makepkg -f --config $pwd/../../etc/makepkg-x86-64.conf;
 echo -e "\tBuilt.";
