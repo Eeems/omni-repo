@@ -45,6 +45,20 @@ for val in "${packages[@]}"; do
 				build=false;
 			fi;
 		;;
+		script)
+			if [[ "${package[script]}" != "" ]];then
+				${package[script]};
+				rc=$?;
+				if [[ $rc == 0 ]];then
+					build=false;
+				else
+					build=true;
+				fi;
+			else
+				echo -e "\tNo Script configured";
+				build=false;
+			fi;
+		;;
 		*)
 			echo -e "\tType '${package[type]}' not implemented.";
 			build=false;
