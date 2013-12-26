@@ -9,7 +9,11 @@ if [[ "$1" != "" ]];then
 	else
 		mkdir -p src/$1/src;
 	fi;
-	touch src/$1/build.sh
+	if [[ ! -f src/$1/build.sh ]];then
+		touch src/$1/build.sh;
+		echo "#!/bin/bash\\necho -e \"\\tBuilt.\"" > src/$1/build.sh;
+	fi;
+	chmod +x src/$1/build.sh
 	echo -e "Type:\n (1) script\n (2) git\n (3) svn";
 	while [[ ! $btype =~ ^1|2|3$ ]]; do
 		read btype;
