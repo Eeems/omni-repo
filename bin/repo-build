@@ -12,10 +12,10 @@ for val in "${packages[@]}"; do
 	eval "package=($val)";
 	name=${package[name]};
 	echo "Checking $name";
+	echo -e "\tChecking for updates";
+	cd $root/src/$name/src;
 	case ${package[type]} in
 		git)
-			echo -e "\tChecking for updates";
-			cd $root/src/$name/src;
 			git reset --hard > /dev/null;
 			expect -c "
 				set timeout 1
@@ -31,6 +31,15 @@ for val in "${packages[@]}"; do
 				}";
 			rc=$?;
 			if [[ $rc == 0 ]];then
+				build=true;
+			else
+				build=false;
+			fi;
+		;;
+		svn)
+			svn revert . -R;
+			if [[ "$(svn info -r HEAD | grep -i "Last Changed Rev")" != "$(svn info | grep -i "Last Changed Rev")" ]];then
+				svn update;
 				build=true;
 			else
 				build=false;
