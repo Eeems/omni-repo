@@ -1,0 +1,12 @@
+#!/bin/bash
+if [[ "$1" != "" ]];then
+	dir="$(dirname $BASH_SOURCE)/..";
+	if [[ -L "$dir/src/$1/src" ]];then
+		rm -f $dir/src/$1/src;
+	fi;
+	rm -rf $dir/src/$1;
+	rm -f $dir/etc/packages.d/$1;
+	echo "Package $1 removed";
+else
+	echo "Usage: $0 <package>";
+fi;

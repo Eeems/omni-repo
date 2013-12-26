@@ -1,0 +1,30 @@
+#!/bin/bash
+if [[ "$1" != "" ]] && [[ "$2" != "" ]]; then
+	root="";
+	stype="";
+	if [[ "$3" != "" ]];then
+		root="$3";
+	fi;
+	echo -e "\nType:\n (1) ssh\n (2) ftp\n (3) rsync";
+	while [[ ! $stype =~ ^1|2|3$ ]]; do
+		read stype;
+	done;
+	case $stype in
+		1)
+			stype="ssh";
+		;;
+		2)
+			stype="ftp";
+		;;
+		3)
+			stype="rsync";
+		;;
+	esac;
+	read -s -p "Password:" pass;
+	file=`dirname $BASH_SOURCE`/../etc/sites.d/$1@$2;
+	touch $file;
+	echo "sites+=([username]=\"$1\" [host]=\"$2\" [password]=\"$(echo $pass | gpg -c | base64)\" [root]=\"$root\" [type]=\"$stype\")" > $file;
+	echo -e "Site $1@$2 created";
+else
+	echo "Usage: $0 <username> <hostname> [<root directory>]"
+fi;

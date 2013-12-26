@@ -1,0 +1,7 @@
+#!/bin/bash
+if [[ "$1" != "" ]] && [[ "$2" != "" ]]; then
+	rm -f $(dirname $BASH_SOURCE)/../etc/sites.d/$1@$2;
+	echo "Site $1@$2 removed";
+else
+	echo "Usage: $0 <username> <hostname>"
+fi;

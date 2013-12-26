@@ -1,0 +1,35 @@
+#!/bin/bash
+if [[ "$1" != "" ]];then
+	btype="";
+	script="";
+	if [[ "$2" != "" ]];then
+		mkdir -p src/$1;
+		ln -s `readlink -f $2`  src/$1/src;
+		echo "Linked source in $2";
+	else
+		mkdir -p src/$1/src;
+	fi;
+	touch src/$1/build.sh
+	echo -e "Type:\n (1) script\n (2) git\n (3) svn";
+	while [[ ! $btype =~ ^1|2|3$ ]]; do
+		read btype;
+	done;
+	case $btype in
+		2)
+			btype="git";
+		;;
+		3)
+			btype="svn";
+		;;
+		*)
+			btype="script";
+			read -p "Script path: " script;
+		;;
+	esac;
+	file=`dirname $BASH_SOURCE`/../etc/packages.d/$1;
+	touch $file;
+	echo "packages+=([name]=\"$1\" [type]=\"$btype\" [script]=\"$script\")" > $file;
+	echo "Created project $1";
+else
+	echo "Usage: $0 <package> [<sourcedir>]";
+fi;
