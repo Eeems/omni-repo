@@ -4,10 +4,11 @@ if [[ "$1" != "" ]];then
 else
 	override=false;
 fi;
-root="$(dirname $BASH_SOURCE)/..";
+root="$(readlink -f $(dirname $BASH_SOURCE)/..)";
+. $root/etc/repo.conf
 . $root/etc/packages.conf
-rm -f $root/repo/latest/i686/*;
-rm -f $root/repo/latest/x86-64/*;
+rm -f $root/repo/latest/i686/*.pkg.tar.xz;
+rm -f $root/repo/latest/x86-64/*.pkg.tar.xz;
 for val in "${packages[@]}"; do
 	unset package;
 	declare -A package;
@@ -91,3 +92,16 @@ for val in "${packages[@]}"; do
 	done;
 	echo -e "\tDone"
 done;
+echo "Building Repository";
+cd $root/repo/latest/
+ls -l $root/repo/latest/ | egrep '^d' | awk '{print $9}' | while read arch; do
+	if [ -d "$root/repo/latest/$arch" ];then
+		echo -e "\t$arch";
+		cd $root/repo/latest/$arch;
+		rm -f $reponame.db.tar.gz;
+		touch $reponame.db.tar.gz;
+		repo-add $reponame.db.tar.gz *.pkg.tar.xz;
+		rm -f $reponame.db.tar.gz.old;
+	fi;
+done;
+cd $root;

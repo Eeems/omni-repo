@@ -1,10 +1,13 @@
 #!/bin/bash
+set -e;
 if [[ "$1" != "" ]];then
+	host_to_sync="$1";
 	force=true;
 else
 	force=false;
 fi;
-root="$(dirname $BASH_SOURCE)/..";
+root="$(readlink -f $(dirname $BASH_SOURCE)/..)";
+. $root/etc/repo.conf
 . $root/etc/sites.conf
 for val in "${sites[@]}"; do
 	unset site;
@@ -12,27 +15,75 @@ for val in "${sites[@]}"; do
 	eval "site=($val)";
 	host=${site[host]};
 	user=${site[username]};
-	echo "Updating $user@$host";
-	case ${site[type]} in
-		ssh)
-			echo -e "\tUploading files";
-			expect -c "
-				set timeout 1
-				log_user 0
-				spawn scp -r $root/skel $user@$host:${site[root]}
-					expect yes/no { send yes\r ; exp_continue }
-					expect password: {
-						send $(echo ${site[password]} | base64 --decode | gpg -d -q --no-mdc-warning)\r 
-						log_user 1
-						set timeout -1
-					}
-					expect eof {
-						exit
-					}
-				}";
-			echo -e "\tDone uploading"
-		;;
-		*)
-			echo -e "\tType '${site[type]}' not implemented.";
-	esac;
+	if ! $force || [[ "$host_to_sync" == "all" ]] || [[ "$host_to_sync" == "$user@$host" ]];then
+		echo "Updating $user@$host";
+		case ${site[type]} in
+			ssh)
+				escp(){
+					length=$(($#-1));
+					files=${@:1:$length};
+					expect -c "
+						set timeout 1
+						log_user 0
+						spawn scp -r $files \"$user@$host:${site[root]}/${!#}\"
+						expect yes/no { send yes\r ; exp_continue }
+						expect password: {
+							send $(echo ${site[password]} | base64 --decode | gpg -d -q --no-mdc-warning)\r 
+							set timeout -1
+						}
+						expect eof {
+							exit
+						}";
+				}
+				essh(){
+					args="$@";
+					expect -c "
+						set timeout 1
+						log_user 0
+						spawn ssh $user@$host $args
+						expect yes/no { send yes\r ; exp_continue }
+						expect password: {
+							send $(echo ${site[password]} | base64 --decode | gpg -d -q --no-mdc-warning)\r 
+							set timeout -1
+						}
+						expect eof {
+							exit
+						}";
+				}
+				upload_local_dir(){
+					find $root/$1 -mindepth 1 | while read file; do
+						if [ -f "$file" ] && [[ "$(basename $file)" != '.gitignore' ]] && [[ "$(basename $file)" != '$reponame.db' ]];then
+							echo -e "\t\tF: $(basename $file)";
+							nfile=${file:((${#root}+${#1}+2))};
+							escp $file $nfile;
+						elif [ -d "$file" ];then
+							file=${file:((${#root}+${#1}+2))};
+							echo -e "\t\tD: $file";
+							essh mkdir -p ${site[root]}/$2/$file;
+						fi;
+					done;
+				}
+				echo -e "\tUploading files to ${site[root]}";
+				essh mkdir -p ${site[root]}/;
+				upload_local_dir skel;
+				if $force; then
+					upload_local_dir repo/latest;
+				else
+					upload_local_dir repo/updates;
+					ls -l $root/repo/latest/ | egrep '^d' | awk '{print $9}' | while read arch; do
+						if [ -d "$root/repo/latest/$arch" ];then
+							escp $root/repo/latest/$arch/$reponame.db.tar.gz /$arch/$reponame.db.tar.gz;
+							essh cd ${site[root]}/$arch && rm -f $reponame.db && ln -s $reponame.db.tar.gz $reponame.db;
+						fi;
+					done;
+				fi;
+				echo -e "\tDone.";
+			;;
+			*)
+				echo -e "\tType '${site[type]}' not implemented.";
+		esac;
+	fi;
+done;
+ls -l $root/repo/updates/ | egrep '^d' | awk '{print $9}' | while read arch; do
+	rm -f $root/repo/updates/$arch/*.pkg.tar.xz;
 done;
