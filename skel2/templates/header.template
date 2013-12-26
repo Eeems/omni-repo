@@ -1,0 +1,19 @@
+<html>
+	<head>
+		<link rel="icon" type="image/ico" href="http://omnimaga.org/favicon.ico">
+		<title>[omni]</title>
+		<style>
+			#wrapper{
+				margin-right: auto;
+				margin-left: auto;
+				width: 500px;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="wrapper">
+			<h1>[omni] Repo:</h1>
+			Append this to /etc/pacman.conf
+			<pre>[omni]
+Server = http://omni.eeems.ca/$arch
+Server = http://withg.us.to/eeems/$repo/$arch</pre>
