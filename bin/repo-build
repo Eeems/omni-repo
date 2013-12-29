@@ -98,9 +98,9 @@ ls -l $root/repo/latest/ | egrep '^d' | awk '{print $9}' | while read arch; do
 	if [ -d "$root/repo/latest/$arch" ];then
 		echo -e "\t$arch";
 		cd $root/repo/latest/$arch;
-		rm -f $reponame.db.tar.gz;
-		touch $reponame.db.tar.gz;
-		repo-add -s -v -f -k $repokey $reponame.db.tar.gz *.pkg.tar.xz;
+		rm -f $reponame.db.*;
+		echo -e "\tUsing key $repokey";
+		repo-add -v -f -k $repokey -s $reponame.db.tar.gz *.pkg.tar.xz;
 		rm -f $reponame.db.tar.gz.old;
 	fi;
 done;
