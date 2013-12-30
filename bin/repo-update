@@ -84,6 +84,8 @@ for val in "${sites[@]}"; do
 		esac;
 	fi;
 done;
-ls -l $root/repo/updates/ | egrep '^d' | awk '{print $9}' | while read arch; do
-	rm -f $root/repo/updates/$arch/*.pkg.tar.xz;
-done;
+if ! force; then
+	ls -l $root/repo/updates/ | egrep '^d' | awk '{print $9}' | while read arch; do
+		rm -f $root/repo/updates/$arch/*.pkg.tar.xz;
+	done;
+fi;
