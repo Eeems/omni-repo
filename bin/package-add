@@ -9,8 +9,6 @@ if [[ "$1" != "" ]];then
 	else
 		mkdir -p src/$1/source;
 	fi;
-	mkdir -p src/$1/pkg
-	mkdir -p src/$1/src
 	if [[ ! -f src/$1/build.sh ]];then
 		cp etc/build.sh.in src/$1/build.sh
 	fi;

@@ -1,8 +1,9 @@
 pkgrel=
 pkgdesc=
-pkgdir=pkg
+license=()
+url=
 arch=('x86-64' 'i686')
-source="$pkgname.tar.gz"
+source=('$pkgname.tar.gz')
 build() {
 	make 
 }
