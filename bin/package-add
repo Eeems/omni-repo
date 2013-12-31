@@ -9,10 +9,6 @@ if [[ "$1" != "" ]];then
 	else
 		mkdir -p src/$1/source;
 	fi;
-	if [[ ! -f src/$1/build.sh ]];then
-		cp etc/build.sh.in src/$1/build.sh
-	fi;
-	chmod +x src/$1/build.sh
 	echo -e "Type:\n (1) script\n (2) git\n (3) svn";
 	while [[ ! $btype =~ ^1|2|3$ ]]; do
 		read btype;
@@ -33,10 +29,10 @@ if [[ "$1" != "" ]];then
 		cp etc/PKGBUILD.in src/$1/PKGBUILD;
 		case $btype in
 			git)
-				echo -e "pkgver=0.0.0\npkgver() {\n\tcd \"$srcdir/../source\"\n\tif git describe --tags > /dev/null 2>&1;then\n\t\tgit describe --long | sed -E 's/([^-]*-g)/r\1/;s/-/./g';\n\telse\n\t\tdate +%Y%m%d;\n\tfi;}"|cat - src/$1/PKGBUILD > /tmp/out && mv /tmp/out src/$1/PKGBUILD;
+				echo -e "pkgver=0.0.0\npkgver() {\n\tcd \"${srcdir%/*}/source\"\n\tif git describe --tags > /dev/null 2>&1;then\n\t\tgit describe --long | sed -E 's/([^-]*-g)/r\1/;s/-/./g';\n\telse\n\t\tdate +%Y%m%d;\n\tfi;}"|cat - src/$1/PKGBUILD > /tmp/out && mv /tmp/out src/$1/PKGBUILD;
 			;;
 			svn)
-				echo -e "pkgver=0.0.0\npkgver() {\n\tcd \"$srcdir/../source\"\n\tlocal ver="$(svnversion)"\n\tprintf \"r%s\" \"${ver//[[:alpha:]]}\"\n}"|cat - src/$1/PKGBUILD > /tmp/out && mv /tmp/out src/$1/PKGBUILD;
+				echo -e "pkgver=0.0.0\npkgver() {\n\tcd \"${srcdir%/*}/source\"\n\tlocal ver="$(svnversion)"\n\tprintf \"r%s\" \"${ver//[[:alpha:]]}\"\n}"|cat - src/$1/PKGBUILD > /tmp/out && mv /tmp/out src/$1/PKGBUILD;
 			;;
 			script)
 				echo -e "pkgver=0.0.0\npkgver() {\n  date +%Y%m%d\n}"|cat - src/$1/PKGBUILD > /tmp/out && mv /tmp/out src/$1/PKGBUILD;

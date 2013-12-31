@@ -1,5 +1,5 @@
 #!/bin/bash
-commands=('expect' 'ssh' 'scp' 'ftp' 'rsync' 'makepkg' 'make' 'git' 'gcc' 'g++');
+commands=('expect' 'ssh' 'scp' 'ftp' 'rsync' 'makepkg' 'make' 'git' 'gcc' 'g++' 'repo-add_and_sign');
 installed(){
 	echo -n -e "Checking for $1...";
 	command -v $1 >/dev/null 2>&1 || {

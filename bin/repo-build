@@ -8,7 +8,7 @@ root="$(readlink -f $(dirname $BASH_SOURCE)/..)";
 . $root/etc/repo.conf
 . $root/etc/packages.conf
 rm -f $root/repo/latest/i686/*.pkg.tar.xz;
-rm -f $root/repo/latest/x86-64/*.pkg.tar.xz;
+rm -f $root/repo/latest/x86_64/*.pkg.tar.xz;
 for val in "${packages[@]}"; do
 	unset package;
 	declare -A package;
@@ -74,22 +74,23 @@ for val in "${packages[@]}"; do
 		echo -e "\tUp to Date";
 	fi;
 	cd $root/src/$name;
-	if ! ls $name-*-i686.pkg.tar.xz &> /dev/null || ! ls $name-*-x86-64.pkg.tar.xz &> /dev/null ||  $build || $override;then
+	if [ $(ls -1 $name-*-i686.pkg.tar.xz 2> /dev/null | wc -l) == 0 ] || [ $(ls -1 $name-*-x86-64.pkg.tar.xz 2> /dev/null | wc -l) == 0 ] || $build || $override;then
 		echo -e "\tBuilding";
-		./build.sh
-		ls $name-*-i686.pkg.tar.xz | while read item; do
-			cp $item $root/repo/updates/i686/$item;
-		done;
-		ls $name-*-x86-64.pkg.tar.xz | while read item; do
-			cp $item $root/repo/updates/x86-64/$item;
-		done;
+		if $build || $override;then
+			rm -f $name-*-i686.pkg.tar.xz $name-*-x86_64.pkg.tar.xz;
+		fi;
+		cd $root/src/$name/source;
+		tar -zcvf $root/src/$name/$name.tar.gz *;
+		cd $root/src/$name;
+		updpkgsums;
+		makepkg -c -f --config $root/etc/makepkg-i686.conf;
+		makepkg -c -f --config $root/etc/makepkg-x86_64.conf;
+		echo -e "\tBuilt.";
+		cp $name-*-i686.pkg.tar.xz $root/repo/updates/i686;
+		cp $name-*-x86-64.pkg.tar.xz $root/repo/updates/x86_64;
 	fi;
-	ls $name-*-i686.pkg.tar.xz | while read item; do
-		cp $item $root/repo/latest/i686/$item;
-	done;
-	ls $name-*-x86-64.pkg.tar.xz | while read item; do
-		cp $item $root/repo/latest/x86-64/$item;
-	done;
+	cp $name-*-i686.pkg.tar.xz $root/repo/latest/i686;
+	cp $name-*-x86-64.pkg.tar.xz $root/repo/latest/x86_64;
 	echo -e "\tDone"
 done;
 echo "Building Repository";
