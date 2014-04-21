@@ -1,0 +1,21 @@
+pkgname=wxwabbitemu
+pkgver=r
+pkgver() {
+	cd "${srcdir%/*}/source"
+	local ver=Unversioned directory
+	printf "r%s" ""
+}
+pkgrel=1
+pkgdesc="a TI-8x emulator based on Wabbitemu"
+arch=('x86-64' 'i686')
+source="$pkgname.tar.gz"
+depends=('wxgtk>=2.8')
+build() {
+	cd $srcdir/build;
+	make 
+}
+package() {
+	cd $srcdir/build;
+	make DESTDIR="${pkgdir}" install
+}
+md5sums=('6bcb70154856c913b4854db10c2c53df')

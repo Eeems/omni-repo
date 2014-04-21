@@ -1,0 +1,22 @@
+pkgname=calcpkg
+pkgver=20131230
+pkgver() {
+	cd "${srcdir%/*}/source"
+	if git describe --tags > /dev/null 2>&1;then
+		git describe --long | sed -E 's/([^-]*-g)/r\1/;s/-/./g';
+	else
+		date +%Y%m%d;
+	fi;}
+pkgrel=1
+pkgdesc='calcpkg is a command line tool for downloading TI calculator software from www.ticalc.org'
+license=()
+url=
+arch=('x86-64' 'i686')
+source=("$pkgname.tar.gz")
+build() {
+	python2 setup.py build;
+}
+package() {
+	python2 setup.py install --prefix=$pkgdir;
+}
+md5sums=('72f9ce16c12d152a82a27c80ea400bdc')

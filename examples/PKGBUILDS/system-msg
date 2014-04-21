@@ -1,0 +1,21 @@
+pkgname=system-msg
+pkgver=v2.4.r0.g9aeb780
+pkgver() {
+	cd "${srcdir%/*}/source"
+	if git describe --tags > /dev/null 2>&1;then
+		git describe --long | sed -E 's/([^-]*-g)/r\1/;s/-/./g';
+	else
+		date +%Y%m%d;
+	fi;
+}
+pkgrel=1
+pkgdesc="Allows admins to easily add messages to be displayed at boot without having to edit files."
+arch=('x86-64' 'i686')
+source="$pkgname.tar.gz"
+build() {
+	make 
+}
+package() {
+	make DESTDIR="${pkgdir}" install
+}
+md5sums=('d2746a064138c7e708ac85cb55346608')
