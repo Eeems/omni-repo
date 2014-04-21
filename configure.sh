@@ -4,7 +4,7 @@ installed(){
 	echo -n -e "Checking for $1...";
 	command -v $1 >/dev/null 2>&1 || {
 		echo -e "\e[31;01mnot installed\e[0m"; >&2;
-		echo "Please install rsync to continue.";
+		echo "Please install $1 to continue.";
 		exit 1;
 	};
 	echo -e "\e[32;01minstalled\e[0m";
