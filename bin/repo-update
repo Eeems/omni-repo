@@ -18,6 +18,33 @@ for val in "${sites[@]}"; do
 	if ! $force || [[ "$host_to_sync" == "all" ]] || [[ "$host_to_sync" == "$user@$host" ]];then
 		echo "Updating $user@$host";
 		case ${site[type]} in
+			rsync)
+				rsyncd(){
+					echo -e "\t\tSyncing $1";
+					expect -c "
+						set timeout 1
+						log_user 0
+						spawn rsync -ra --exclude=\".gitignore\" --exclude=\"$reponame.db\" $1 $user@$host:${site[root]};
+						expect {
+							yes/no {
+								send yes\r;
+								exp_continue
+							}
+							password: {
+								send $(echo ${site[password]} | base64 --decode | gpg -d -q --no-mdc-warning)\r 
+								set timeout -1
+							}
+							eof {
+								exit
+							}
+						}
+					";
+				}
+				echo -e "\tUploading files to ${site[root]}";
+				rsyncd $root/skel/;
+				rsyncd $root/repo/latest/;
+				echo -e "\tDone.";
+			;;
 			ssh)
 				escp(){
 					length=$(($#-1));
@@ -26,13 +53,18 @@ for val in "${sites[@]}"; do
 						set timeout 1
 						log_user 0
 						spawn scp -r $files \"$user@$host:${site[root]}/${!#}\"
-						expect yes/no { send yes\r ; exp_continue }
-						expect password: {
-							send $(echo ${site[password]} | base64 --decode | gpg -d -q --no-mdc-warning)\r 
-							set timeout -1
-						}
-						expect eof {
-							exit
+						expect {
+							yes/no {
+								send yes\r;
+								exp_continue
+							}
+							password: {
+								send $(echo ${site[password]} | base64 --decode | gpg -d -q --no-mdc-warning)\r 
+								set timeout -1
+							}
+							eof {
+								exit
+							}
 						}";
 				}
 				essh(){
@@ -41,13 +73,18 @@ for val in "${sites[@]}"; do
 						set timeout 1
 						log_user 0
 						spawn ssh $user@$host $args
-						expect yes/no { send yes\r ; exp_continue }
-						expect password: {
-							send $(echo ${site[password]} | base64 --decode | gpg -d -q --no-mdc-warning)\r 
-							set timeout -1
-						}
-						expect eof {
-							exit
+						expect {
+							yes/no {
+								send yes\r;
+								exp_continue
+							}
+							password: {
+								send $(echo ${site[password]} | base64 --decode | gpg -d -q --no-mdc-warning)\r 
+								set timeout -1
+							}
+							eof {
+								exit
+							}
 						}";
 				}
 				upload_local_dir(){
