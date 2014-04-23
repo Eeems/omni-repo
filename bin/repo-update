@@ -21,23 +21,60 @@ for val in "${sites[@]}"; do
 			rsync)
 				rsyncd(){
 					echo -e "\t\tSyncing $1";
-					expect -c "
-						set timeout 1
-						log_user 0
-						spawn rsync -ra --exclude=\".gitignore\" --exclude=\"$reponame.db\" $1 $user@$host:${site[root]};
+					ARGS="-rzvlhe ssh --progress --stats --exclude=\".gitignore\" $1 $user@$host:${site[root]}";
+					FILES=$(expect -c "
+						set timeout -1
+						log_user 1
+						spawn rsync --dry-run $ARGS;
 						expect {
-							yes/no {
-								send yes\r;
+							\"yes/no\" {
+								send yes\r
 								exp_continue
 							}
 							password: {
-								send $(echo ${site[password]} | base64 --decode | gpg -d -q --no-mdc-warning)\r 
-								set timeout -1
+								log_user 0;
+								send $(echo ${site[password]} | base64 --decode | gpg -d -q --no-mdc-warning)\r;
+								log_user 1;
+								exp_continue
 							}
 							eof {
 								exit
 							}
 						}
+					" | grep "^Number of regular files transferred:" | awk '{print $6}');
+					if [[ "$FILES" == "" ]]; then
+						FILES="0";
+					fi;
+					echo -e "\t\t\tFiles to transfer: $FILES";
+					expect -c "
+						set timeout -1
+						set count 0
+						log_user 0
+						spawn rsync $ARGS;
+						expect {
+							to-chk {
+								set count \"[expr \$count + 1]\"
+								send_user \"\t\t\t\tDone \";
+								send_user \$count;
+								send_user \"/$FILES\n\";
+								exp_continue
+							}
+							yes/no {
+								send yes\r
+								exp_continue
+							}
+							password: {
+								log_user 0;
+								send $(echo ${site[password]} | base64 --decode | gpg -d -q --no-mdc-warning)\r;
+								send_user \"\t\t\tLogged In\n\"
+								exp_continue
+							}
+							eof {
+								send_user \"\t\t\tDone\n\"
+								exit
+							}
+						}
+						send_user \"\t\tTimed Out\n\"
 					";
 				}
 				echo -e "\tUploading files to ${site[root]}";
