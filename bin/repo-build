@@ -1,97 +1,98 @@
 #!/bin/bash
-if [[ "$1" != "" ]];then
-	override=true;
-else
-	override=false;
-fi;
 root="$(readlink -f $(dirname $BASH_SOURCE)/..)";
 . $root/etc/repo.conf
 . $root/etc/packages.conf
-rm -f $root/repo/latest/i686/*.pkg.tar.xz;
-rm -f $root/repo/latest/x86_64/*.pkg.tar.xz;
+echo "Finding Architectures";
+for arch in $(ls $root/etc/arch.d); do
+	echo -e "\tFound $arch";
+	mkdir -p $root/repo/latest/$arch;
+	mkdir -p $root/repo/updates/$arch;
+	rm -f $root/repo/latest/$arch/*.pkg.tar.xz;
+done;
 for val in "${packages[@]}"; do
 	unset package;
 	declare -A package;
 	eval "package=($val)";
-	name=${package[name]};
-	echo "Checking $name";
-	echo -e "\tChecking for updates";
-	cd $root/src/$name/source;
-	case ${package[type]} in
-		git)
-			git reset --hard > /dev/null;
-			git clean -f -d > /dev/null;
-			git fetch --tags > /dev/null;
-			expect -c "
-				set timeout 1
-				log_user 0
-				spawn git pull
-					expect \"Already up-to-date.\" {
-						exit 1
-					}
-					log_user 1
-					expect eof {
-						exit 0
-					}
-				}";
-			rc=$?;
-			if [[ $rc == 0 ]];then
-				build=true;
-			else
-				build=false;
-			fi;
-		;;
-		svn)
-			svn revert . -R;
-			if [[ "$(svn info -r HEAD | grep -i "Last Changed Rev")" != "$(svn info | grep -i "Last Changed Rev")" ]];then
-				svn update;
-				build=true;
-			else
-				build=false;
-			fi;
-		;;
-		script)
-			if [[ "${package[script]}" != "" ]];then
-				${package[script]};
+	if [[ "${package[ignore]}" == "" ]];then
+		name=${package[name]};
+		echo "Checking $name";
+		echo -e "\tChecking for updates";
+		cd $root/src/$name/source;
+		case ${package[type]} in
+			git)
+				git reset --hard > /dev/null;
+				git clean -f -d > /dev/null;
+				git fetch --tags > /dev/null;
+				expect -c "
+					set timeout 1
+					log_user 0
+					spawn git pull
+						expect \"Already up-to-date.\" {
+							exit 1
+						}
+						log_user 1
+						expect eof {
+							exit 0
+						}
+					}";
 				rc=$?;
 				if [[ $rc == 0 ]];then
-					build=false;
-				else
 					build=true;
+				else
+					build=false;
 				fi;
-			else
-				echo -e "\tNo Script configured";
+			;;
+			svn)
+				svn revert . -R;
+				if [[ "$(svn info -r HEAD | grep -i "Last Changed Rev")" != "$(svn info | grep -i "Last Changed Rev")" ]];then
+					svn update;
+					build=true;
+				else
+					build=false;
+				fi;
+			;;
+			script)
+				if [[ "${package[script]}" != "" ]];then
+					${package[script]};
+					rc=$?;
+					if [[ $rc == 0 ]];then
+						build=false;
+					else
+						build=true;
+					fi;
+				else
+					echo -e "\tNo Script configured";
+					build=false;
+				fi;
+			;;
+			*)
+				echo -e "\tType '${package[type]}' not implemented.";
 				build=false;
-			fi;
-		;;
-		*)
-			echo -e "\tType '${package[type]}' not implemented.";
-			build=false;
-	esac;
-	if $build;then
-		echo -e "\tUpdated";
-	else
-		echo -e "\tUp to Date";
-	fi;
-	cd $root/src/$name;
-	if [ $(ls -1 $name-*-i686.pkg.tar.xz 2> /dev/null | wc -l) == 0 ] || [ $(ls -1 $name-*-x86-64.pkg.tar.xz 2> /dev/null | wc -l) == 0 ] || $build || $override;then
-		echo -e "\tBuilding";
-		if $build || $override;then
-			rm -f $name-*-i686.pkg.tar.xz $name-*-x86_64.pkg.tar.xz;
+		esac;
+		if $build;then
+			echo -e "\tUpdated";
+		else
+			echo -e "\tUp to Date";
 		fi;
-		cd $root/src/$name/source;
-		tar -zcvf $root/src/$name/$name.tar.gz *;
 		cd $root/src/$name;
-		updpkgsums;
-		makepkg -c -f --config $root/etc/makepkg-i686.conf;
-		makepkg -c -f --config $root/etc/makepkg-x86_64.conf;
-		echo -e "\tBuilt.";
-		cp $name-*-i686.pkg.tar.xz $root/repo/updates/i686;
-		cp $name-*-x86-64.pkg.tar.xz $root/repo/updates/x86_64;
+		for arch in $(ls $root/etc/arch.d); do
+			if [ $(ls -1 $name-*-i686.pkg.tar.xz 2> /dev/null | wc -l) == 0 ] || [ $(ls -1 $name-*-x86_64.pkg.tar.xz 2> /dev/null | wc -l) == 0 ] || $build;then
+				echo -e "\tBuilding $arch";
+				if $build;then
+					rm -f $name-*-$arch.pkg.tar.xz;
+				fi;
+				cd $root/src/$name/source;
+				tar -zcvf $root/src/$name/$name.tar.gz *;
+				cd $root/src/$name;
+				updpkgsums;
+				makepkg -c -f --config $root/etc/arch.d/$arch;
+				echo -e "\tBuilt.";
+				cp $name-*-$arch.pkg.tar.xz $root/repo/updates/$arch;
+			fi;
+			cp $name-*-$arch.pkg.tar.xz $root/repo/latest/$arch;
+		done;
+		echo -e "\tDone"
 	fi;
-	cp $name-*-i686.pkg.tar.xz $root/repo/latest/i686;
-	cp $name-*-x86-64.pkg.tar.xz $root/repo/latest/x86_64;
-	echo -e "\tDone"
 done;
 echo "Building Repository";
 cd $root/repo/latest/

@@ -1,0 +1,14 @@
+root="$(readlink -f $(dirname $BASH_SOURCE)/..)";
+. $root/etc/packages.conf
+
+echo "Cleaning...";
+for val in "${packages[@]}"; do
+	unset package;
+	declare -A package;
+	eval "package=($val)";
+	name="${package[name]}";
+	echo -e "\t$name";
+	cd $root/src/$name;
+	rm -f *.pkg.tar.xz;
+done;
+echo "Done";

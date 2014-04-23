@@ -23,7 +23,7 @@ DLAGENTS=('ftp::/usr/bin/curl -fC - --ftp-pasv --retry 3 --retry-delay 3 -o %o %
 # ARCHITECTURE, COMPILE FLAGS
 #########################################################################
 #
-CARCH="x86-64"
+CARCH="x86_64"
 CHOST="x86-64-pc-linux-gnu"
 
 #-- Compiler and Linker Flags
