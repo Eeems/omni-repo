@@ -1,2 +1,4 @@
 etc/repo.key
 omni.db
+repo/latest/config.txt
+repo/latest/name.txt

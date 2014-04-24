@@ -9,6 +9,15 @@ fi;
 root="$(readlink -f $(dirname $BASH_SOURCE)/..)";
 . $root/etc/repo.conf
 . $root/etc/sites.conf
+echo $reponame > $root/repo/latest/name.txt;
+echo "[$reponame]" > $root/repo/latest/config.txt;
+echo "SigLevel = Never" >> $root/repo/latest/config.txt;
+for val in "${sites[@]}"; do
+	unset site;
+	declare -A site;
+	eval "site=($val)";
+	echo "Server = ${site[site]}" >> $root/repo/latest/config.txt;
+done;
 for val in "${sites[@]}"; do
 	unset site;
 	declare -A site;
