@@ -2,7 +2,7 @@ pkgrel=
 pkgdesc=
 license=()
 url=
-arch=('x86-64' 'i686')
+arch=('x86_64' 'i686')
 source=('$pkgname.tar.gz')
 build() {
 	make 
