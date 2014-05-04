@@ -109,4 +109,8 @@ ls -l $root/repo/latest/ | egrep '^d' | awk '{print $9}' | while read arch; do
 		rm -f $reponame.db.tar.gz.old;
 	fi;
 done;
+ls -l $root/repo/latest/ | egrep '^d' | awk '{print $9}' | while read arch; do
+	rm -f $reponame.db;
+	ln -s $reponame.db.tar.gz $reponame.db;
+done;
 cd $root;

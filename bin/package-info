@@ -1,0 +1,18 @@
+#!/bin/bash
+root="$(readlink -f $(dirname $BASH_SOURCE)/..)";
+. $root/etc/packages.conf
+unset package;
+for val in "${packages[@]}"; do
+	unset p;
+	declare -A p;
+	eval "p=($val)";
+	if [[ "${p[name]}" == "$1" ]];then
+		echo "${p[name]}";
+		for i in "${!p[@]}";do
+			echo -e "\t$i: ${p[$i]}";
+		done;
+		exit 0;
+	fi;
+done;
+echo "Package $1 does not exist";
+exit 1;

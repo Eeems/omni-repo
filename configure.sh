@@ -16,4 +16,4 @@ done;
 echo "Check done, entering install shell.";
 echo -n "Available install commands: ";
 ls $(dirname $BASH_SOURCE)/bin/;
-bin/install-shell;
+$(dirname $BASH_SOURCE)/bin/install-shell;

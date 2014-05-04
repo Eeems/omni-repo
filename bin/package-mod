@@ -1,0 +1,55 @@
+#!/bin/bash
+root="$(readlink -f $(dirname $BASH_SOURCE)/..)";
+. $root/etc/packages.conf
+this="";
+package(){
+	for val in "${packages[@]}"; do
+		unset p;
+		declare -A p;
+		eval "p=($val)";
+		if [[ "${p[name]}" == "$1" ]];then
+			echo $val;
+		fi;
+	done;
+}
+save(){
+	local file="packages+=(\"";
+	for i in "${!this[@]}"; do
+		file="$file [$i]='${this[$i]}'";
+	done;
+	file="$file\")";
+	echo $file>$root/etc/packages.d/${this[name]};
+	exit 0;
+}
+case $1 in
+	ignore)
+		if [[ "$2" != "" ]];then
+			unset this;
+			declare -A this;
+			p=$(package $2);
+			eval "this=($p)";
+			if [[ $p != "" ]];then
+				this[ignore]="true";
+				echo ${this};
+				save;
+			fi;
+		fi;
+		echo "Usage $0 ignore <package>";
+	;;
+	unignore)
+		if [[ "$2" != "" ]];then
+			unset this;
+			declare -A this;
+			p=$(package $2);
+			eval "this=($p)";
+			if [[ $p != "" ]];then
+				this[ignore]="";
+				save;
+			fi;
+		fi;
+		echo "Usage $0 unignore <package>";
+	;;
+	*)
+		echo "Usage: $0 <command>";
+	;;
+esac;
